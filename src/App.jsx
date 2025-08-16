@@ -7,45 +7,52 @@ export default function App() {
     { id: 3, name: "Hulk", power: "Force surhumaine", universe: "Marvel" }
   ]);
 
-  const addHero = () => {
-    const name = prompt("Nom du super-héros :");
-    const power = prompt("Pouvoir :");
-    const universe = prompt("Univers :");
-    if (name && power && universe) {
-      setHeroes([...heroes, { id: Date.now(), name, power, universe }]);
-    }
+  const [form, setForm] = useState({ name: "", power: "", universe: "" });
+  const [editingId, setEditingId] = useState(null);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const editHero = (id) => {
     const hero = heroes.find(h => h.id === id);
-    const name = prompt("Nouveau nom :", hero.name);
-    const power = prompt("Nouveau pouvoir :", hero.power);
-    const universe = prompt("Nouvel univers :", hero.universe);
-    if (name && power && universe) {
-      setHeroes(heroes.map(h => h.id === id ? { ...h, name, power, universe } : h));
-    }
+    setForm({ name: hero.name, power: hero.power, universe: hero.universe });
+    setEditingId(id);
   };
 
   const deleteHero = (id) => {
     if (confirm("Supprimer ce héros ?")) {
       setHeroes(heroes.filter(h => h.id !== id));
+      if (editingId === id) {
+        setEditingId(null);
+        setForm({ name: "", power: "", universe: "" });
+      }
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.power || !form.universe) {
+      alert("Remplis tous les champs !");
+      return;
+    }
+
+    if (editingId) {
+      setHeroes(heroes.map(h => h.id === editingId ? { ...h, ...form } : h));
+      setEditingId(null);
+    } else {
+      setHeroes([...heroes, { id: Date.now(), ...form }]);
+    }
+
+    setForm({ name: "", power: "", universe: "" });
   };
 
   return (
     <div className="min-h-screen bg-marvelRed text-white p-6">
       <h1 className="text-4xl font-bold mb-6 text-center">Marvel Heroes</h1>
 
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={addHero}
-          className="bg-white text-marvelRed px-4 py-2 rounded hover:bg-gray-200"
-        >
-          ➕ Ajouter
-        </button>
-      </div>
-
-      <table className="w-full border border-white">
+      {/* Tableau */}
+      <table className="w-full border border-white mb-6">
         <thead className="bg-marvelBlack">
           <tr>
             <th className="p-2 border border-white">Nom</th>
@@ -78,6 +85,53 @@ export default function App() {
           ))}
         </tbody>
       </table>
+
+      {/* Formulaire */}
+      <form onSubmit={handleSubmit} className="bg-white text-black p-4 rounded-lg shadow-lg max-w-lg mx-auto">
+        <h2 className="text-xl font-bold mb-4 text-marvelRed">
+          {editingId ? "Modifier un héros" : "Ajouter un héros"}
+        </h2>
+
+        <div className="mb-3">
+          <label className="block font-semibold">Nom</label>
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="block font-semibold">Pouvoir</label>
+          <input
+            type="text"
+            name="power"
+            value={form.power}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="block font-semibold">Univers</label>
+          <input
+            type="text"
+            name="universe"
+            value={form.universe}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-marvelRed text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          {editingId ? "Mettre à jour" : "Ajouter"}
+        </button>
+      </form>
     </div>
   );
 }
